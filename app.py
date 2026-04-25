@@ -60,79 +60,89 @@ with col3:
 with col4:
     st.metric("市场均价", f"${filtered_df['价格'].mean():.2f}")
 
-# --- Row 1: Trend & Overall Brand Share ---
-row1_col1, row1_col2 = st.columns([2, 1])
+# --- Row 1: Trend Analysis ---
+st.subheader("📈 市场销售趋势分析 (按月)")
 
-with row1_col1:
-    st.subheader("📈 市场销售趋势分析 (按月)")
-    
-    # 1. Total Market Trend
-    total_trend = filtered_df.groupby(['月份'])['销售额'].sum().reset_index()
-    total_trend.rename(columns={'销售额': '全市场销售额'}, inplace=True)
-    
-    # 2. Hollyland Trend
-    hollyland_df = filtered_df[filtered_df['品牌'] == 'Hollyland']
-    hollyland_trend = hollyland_df.groupby(['月份'])['销售额'].sum().reset_index()
-    hollyland_trend.rename(columns={'销售额': 'Hollyland销售额'}, inplace=True)
-    
-    # 3. Merge and Calculate Percentage
-    trend_df = pd.merge(total_trend, hollyland_trend, on='月份', how='left').fillna(0)
-    trend_df['Hollyland占比'] = (trend_df['Hollyland销售额'] / trend_df['全市场销售额'] * 100).round(1)
-    
-    # 4. Plot
-    fig_trend = go.Figure()
-    
-    # Total Market Line
-    fig_trend.add_trace(go.Scatter(
-        x=trend_df['月份'], y=trend_df['全市场销售额'],
-        mode='lines+markers',
-        name='全市场',
-        line=dict(color='#2563eb', width=3, shape='spline'),
-        hovertemplate='全市场: $%{y:,.0f}<extra></extra>'
-    ))
-    
-    # Hollyland Line
-    fig_trend.add_trace(go.Scatter(
-        x=trend_df['月份'], y=trend_df['Hollyland销售额'],
-        mode='lines+markers+text',
-        name='Hollyland',
-        line=dict(color='#e11d48', width=3, shape='spline'),
-        text=trend_df['Hollyland占比'].astype(str) + '%',
-        textposition='top center',
-        textfont=dict(color='#e11d48', size=11, weight='bold'),
-        hovertemplate='Hollyland: $%{y:,.0f}<br>占比: %{text}<extra></extra>'
-    ))
-    
-    fig_trend.update_layout(
-        title='全市场 vs Hollyland 月度销售趋势',
-        template='plotly_white',
-        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(size=13, color="#334155"),
-        hovermode="x unified",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-    st.plotly_chart(fig_trend, use_container_width=True)
+# 1. Total Market Trend
+total_trend = filtered_df.groupby(['月份'])['销售额'].sum().reset_index()
+total_trend.rename(columns={'销售额': '全市场销售额'}, inplace=True)
 
-with row1_col2:
-    st.subheader("📊 Top 10 品牌市场份额")
-    brand_df = filtered_df.groupby('品牌')['销售额'].sum().sort_values(ascending=False).head(10).reset_index()
-    fig_brand = px.pie(brand_df, values='销售额', names='品牌', 
-                        template='plotly_white',
-                        hole=0.4, color_discrete_sequence=COLOR_PALETTE)
-    fig_brand.update_traces(
-        textinfo='label+percent', 
-        textposition='outside', 
-        insidetextorientation='radial',
-        marker=dict(line=dict(color='#ffffff', width=2))
-    )
-    fig_brand.update_layout(
-        showlegend=False, 
-        margin=dict(t=40, b=40, l=20, r=20),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(size=13, color="#334155")
-    )
-    st.plotly_chart(fig_brand, use_container_width=True)
+# 2. Hollyland Trend
+hollyland_df = filtered_df[filtered_df['品牌'] == 'Hollyland']
+hollyland_trend = hollyland_df.groupby(['月份'])['销售额'].sum().reset_index()
+hollyland_trend.rename(columns={'销售额': 'Hollyland销售额'}, inplace=True)
+
+# 3. Merge and Calculate Percentage
+trend_df = pd.merge(total_trend, hollyland_trend, on='月份', how='left').fillna(0)
+trend_df['Hollyland占比'] = (trend_df['Hollyland销售额'] / trend_df['全市场销售额'] * 100).round(1)
+
+# 4. Plot
+fig_trend = go.Figure()
+
+# Total Market Line
+fig_trend.add_trace(go.Scatter(
+    x=trend_df['月份'], y=trend_df['全市场销售额'],
+    mode='lines+markers',
+    name='全市场',
+    line=dict(color='#2563eb', width=3, shape='spline'),
+    hovertemplate='全市场: $%{y:,.0f}<extra></extra>'
+))
+
+# Hollyland Line
+fig_trend.add_trace(go.Scatter(
+    x=trend_df['月份'], y=trend_df['Hollyland销售额'],
+    mode='lines+markers+text',
+    name='Hollyland',
+    line=dict(color='#e11d48', width=3, shape='spline'),
+    text=trend_df['Hollyland占比'].astype(str) + '%',
+    textposition='top center',
+    textfont=dict(color='#e11d48', size=11, weight='bold'),
+    hovertemplate='Hollyland: $%{y:,.0f}<br>占比: %{text}<extra></extra>'
+))
+
+fig_trend.update_layout(
+    title='全市场 vs Hollyland 月度销售趋势',
+    template='plotly_white',
+    plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+    font=dict(size=13, color="#334155"),
+    hovermode="x unified",
+    height=450,
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+)
+st.plotly_chart(fig_trend, use_container_width=True)
+
+# --- Row 1.5: Brand Share (Dedicated Row) ---
+st.markdown("---")
+
+# Calculate latest complete quarter for the pie chart context
+filtered_df['Date_tmp'] = pd.to_datetime(filtered_df['月份'])
+filtered_df['Q_tmp'] = filtered_df['Date_tmp'].dt.to_period('Q')
+q_counts = filtered_df.groupby('Q_tmp')['月份'].nunique()
+complete_qs = q_counts[q_counts == 3].index
+latest_q_val = complete_qs.max() if not complete_qs.empty else filtered_df['Q_tmp'].max()
+
+st.subheader(f"📊 Top 10 品牌市场份额 ({latest_q_val})")
+q_brand_df = filtered_df[filtered_df['Q_tmp'] == latest_q_val].groupby('品牌')['销售额'].sum().sort_values(ascending=False).head(10).reset_index()
+
+fig_brand = px.pie(q_brand_df, values='销售额', names='品牌', 
+                    template='plotly_white',
+                    hole=0.4, color_discrete_sequence=COLOR_PALETTE)
+fig_brand.update_traces(
+    textinfo='label+percent', 
+    textposition='outside', 
+    insidetextorientation='radial',
+    marker=dict(line=dict(color='#ffffff', width=2))
+)
+fig_brand.update_layout(
+    showlegend=True, 
+    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.1),
+    margin=dict(t=60, b=60, l=20, r=150),
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    height=500,
+    font=dict(size=13, color="#334155")
+)
+st.plotly_chart(fig_brand, use_container_width=True)
 
 # --- Row 2: Price Segment Analysis ---
 st.markdown("---")

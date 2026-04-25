@@ -88,7 +88,45 @@ h1 {
     box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3) !important;
 }
 
-/* Fix for Plotly text visibility */
-.js-plotly-plot .plotly .cursor-crosshair {
-    cursor: crosshair;
+/* PDF/Print Optimization */
+@media print {
+    /* Hide sidebar and non-essential UI */
+    [data-testid="stSidebar"], 
+    .stDownloadButton, 
+    button, 
+    footer, 
+    header {
+        display: none !important;
+    }
+
+    /* Reset container padding and background */
+    .main .block-container {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .stApp {
+        background: white !important;
+    }
+
+    /* Force columns to stack to avoid horizontal truncation on narrow paper */
+    [data-testid="column"] {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
+        margin-bottom: 20px;
+    }
+
+    /* Fix Plotly chart sizes */
+    .stPlotlyChart {
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        page-break-inside: avoid;
+    }
+
+    /* Headers black on white */
+    h1, h2, h3, h4, h5, h6 {
+        color: black !important;
+    }
 }

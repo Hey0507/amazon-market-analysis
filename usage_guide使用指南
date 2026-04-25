@@ -1,0 +1,125 @@
+# 📖 Amazon 市场分析工具 — 使用指南
+
+## 一、Excel 报告使用说明
+
+### 文件位置
+```
+c:\Users\alecl\Documents\Market_Analysis\Amazon市场分析报告_20260425.xlsx
+```
+
+### 5 张工作表内容
+
+| 工作表 | 内容 | 适合用途 |
+|---|---|---|
+| **市场概览** | 6个核心KPI + 24个月趋势表 + 趋势折线图 | 高管汇报、整体市场简报 |
+| **品牌市场份额** | Top 15品牌销量/销售额/占比 + 柱状图 | 竞争格局分析 |
+| **价位段分析** | 各价位段结构 + 最新完整季度Top5品牌明细 | 选品定价参考 |
+| **Hollyland 专项** | 24个月Hollyland月度数据 + 市场占比 | 自身品牌追踪 |
+| **原始明细** | 销售额前200条ASIN详情 | 深度数据查询 |
+
+### 分享方式
+- 直接发送 `.xlsx` 文件（微信/钉钉/邮件均可）
+- 收件方用 Excel 或 WPS 打开，**无需安装任何工具**
+
+---
+
+## 二、更新数据 & 重新生成报告
+
+每月需要更新时，在 PowerShell 中运行：
+
+```powershell
+cd c:\Users\alecl\Documents\Market_Analysis
+
+# 步骤1：采集新月份数据（通过 Antigravity AI 触发 MCP 工具）
+# → 告诉 AI："更新市场数据，采集最新月份"
+
+# 步骤2：更新数据处理文件
+.\venv\Scripts\python.exe final_processor.py
+
+# 步骤3：生成新 Excel 报告
+$env:PYTHONIOENCODING='utf-8'; .\venv\Scripts\python.exe export_excel.py
+```
+
+生成的报告文件名自动包含日期（如 `Amazon市场分析报告_20260525.xlsx`）。
+
+---
+
+## 三、Antigravity Skill 使用方式
+
+项目中已包含 `skill.py`，它定义了完整的工作流。
+
+### 触发方式
+直接用自然语言告诉 Antigravity AI：
+
+> "**更新市场数据**"  
+> "**生成市场报告**"  
+> "**运行亚马逊市场分析**"
+
+AI 会自动按顺序执行：
+```
+检测缺失月份 → MCP采集数据 → 处理归一化 → 生成Excel → (可选)启动看板
+```
+
+### Skill 配置说明（skill.py）
+
+如需调整分析范围，修改 `CONFIG` 字典：
+
+```python
+CONFIG = {
+    "lookback_months": 24,       # 分析月份数（改为12则只看近一年）
+    "min_monthly_sales": 200,    # 最低销量过滤阈值
+    "brand_aliases": {
+        "Hollyview": "Hollyland" # 品牌归一化规则，可继续添加
+    },
+    "price_tiers": ["0-30", "30-50", "50-100", "100-150", "150+"]  # 价格分层
+}
+```
+
+### 新增品类或品牌别名
+
+```python
+# 添加新品类节点 ID（从 Sellersprite 查询获取）
+"node_ids": {
+    "领夹麦克风": "11974761",
+    "发射接收器": "10677099011",
+    "新品类名": "新节点ID"   # ← 在此添加
+}
+
+# 添加新的品牌别名规则
+"brand_aliases": {
+    "Hollyview": "Hollyland",
+    "新别名": "标准品牌名"    # ← 在此添加
+}
+```
+
+---
+
+## 四、项目文件一览
+
+```
+Market_Analysis/
+├── skill.py                    ← Antigravity Skill 定义（工作流入口）
+├── app.py                      ← Streamlit 交互看板
+├── final_processor.py          ← 数据清洗与处理引擎
+├── export_excel.py             ← Excel 报告生成器
+├── style.css                   ← 看板样式
+├── processed_market_data.pkl   ← 处理后的数据文件
+├── Amazon市场分析报告_*.xlsx   ← 生成的 Excel 报告（直接外发）
+└── requirements.txt            ← Python 依赖
+```
+
+---
+
+## 五、快速命令参考
+
+```powershell
+# 启动本地看板（浏览器交互查看）
+cd c:\Users\alecl\Documents\Market_Analysis
+.\venv\Scripts\streamlit.exe run app.py
+
+# 生成 Excel 报告
+$env:PYTHONIOENCODING='utf-8'; .\venv\Scripts\python.exe export_excel.py
+
+# 数据处理（采集完新数据后运行）
+.\venv\Scripts\python.exe final_processor.py
+```
