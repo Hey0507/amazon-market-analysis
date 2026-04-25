@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Local data and scripts (not needed for deployment)
+market_data_raw.json
+aggregate_data.py
+field_discovery.py
+find_mcp.py
+data_processor.py
+final_processor.py
+market_report_summary.xlsx
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
