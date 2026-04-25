@@ -98,6 +98,10 @@ CONFIG = {
 
 ```
 Market_Analysis/
+├── PROJECT_HANDOVER.md         ← 项目交付明细与未来路线图（推荐阅读）
+├── IMPLEMENTATION_PLAN.md      ← 初始实施方案与架构设计
+├── walkthrough.md              ← V3版本变更记录与逻辑更新
+├── usage_guide使用指南          ← 本文档
 ├── skill.py                    ← Antigravity Skill 定义（工作流入口）
 ├── app.py                      ← Streamlit 交互看板
 ├── final_processor.py          ← 数据清洗与处理引擎
