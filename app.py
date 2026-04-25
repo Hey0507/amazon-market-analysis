@@ -147,87 +147,92 @@ st.plotly_chart(fig_brand, use_container_width=True)
 # --- Row 2: Price Segment Analysis ---
 st.markdown("---")
 st.header("💰 价位段深度分析")
-row2_col1, row2_col2 = st.columns(2)
+# --- Row 2: Price Segment Analysis ---
+st.markdown("---")
+st.header("💰 价位段深度分析")
 
-with row2_col1:
-    st.subheader("🛒 各价位段销售规模")
-    price_metrics = filtered_df.groupby('价格区间')[['销量', '销售额']].sum().reindex(price_tiers_order).dropna().reset_index()
-    fig_price_metrics = go.Figure()
-    fig_price_metrics.add_trace(go.Bar(x=price_metrics['价格区间'], y=price_metrics['销售额'], name='销售额', marker_color='#3b82f6'))
-    fig_price_metrics.add_trace(go.Scatter(x=price_metrics['价格区间'], y=price_metrics['销量'], name='销量', yaxis='y2', line=dict(color='#10b981', width=3)))
+# 1. Price Segment Scale (Full Width)
+st.subheader("🛒 各价位段销售规模 (销量 vs 销售额)")
+price_metrics = filtered_df.groupby('价格区间')[['销量', '销售额']].sum().reindex(price_tiers_order).dropna().reset_index()
+fig_price_metrics = go.Figure()
+fig_price_metrics.add_trace(go.Bar(x=price_metrics['价格区间'], y=price_metrics['销售额'], name='销售额', marker_color='#3b82f6'))
+fig_price_metrics.add_trace(go.Scatter(x=price_metrics['价格区间'], y=price_metrics['销量'], name='销量', yaxis='y2', line=dict(color='#10b981', width=3)))
+
+fig_price_metrics.update_layout(
+    template='plotly_white',
+    yaxis=dict(title='销售额 (USD)', side='left'),
+    yaxis2=dict(title='销量 (Units)', side='right', overlaying='y'),
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+    height=450,
+    font=dict(color="#334155")
+)
+st.plotly_chart(fig_price_metrics, use_container_width=True)
+
+st.markdown("---")
+
+# 2. Price Segment Brand Ratio (Full Width)
+# Calculate latest complete quarter
+filtered_df['Date'] = pd.to_datetime(filtered_df['月份'])
+filtered_df['YearQuarter'] = filtered_df['Date'].dt.to_period('Q')
+
+quarter_month_counts = filtered_df.groupby('YearQuarter')['月份'].nunique()
+complete_quarters = quarter_month_counts[quarter_month_counts == 3].index
+
+if not complete_quarters.empty:
+    latest_q = complete_quarters.max()
+else:
+    latest_q = filtered_df['YearQuarter'].max()
     
-    fig_price_metrics.update_layout(
-        title='价位段销量 vs 销售额',
-        template='plotly_white',
-        yaxis=dict(title='销售额 (USD)', side='left'),
-        yaxis2=dict(title='销量 (Units)', side='right', overlaying='y'),
-        legend=dict(x=0.01, y=0.99),
-        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color="#334155")
+st.subheader(f"🏆 各价位段 Top 5 品牌占比 ({latest_q})")
+
+q_df = filtered_df[filtered_df['YearQuarter'] == latest_q]
+price_tiers_list = price_metrics['价格区间'].tolist()
+brand_ratio_data = []
+
+for tier in price_tiers_list:
+    tier_df = q_df[q_df['价格区间'] == tier]
+    total_tier_rev = tier_df['销售额'].sum()
+    
+    if total_tier_rev > 0:
+        brand_revs = tier_df.groupby('品牌')['销售额'].sum().sort_values(ascending=False).head(5)
+        for brand, rev in brand_revs.items():
+            ratio = (rev / total_tier_rev) * 100
+            brand_ratio_data.append({
+                '价格区间': tier,
+                '品牌': brand,
+                '占比': ratio,
+                '销售额': rev
+            })
+            
+if brand_ratio_data:
+    chart_df = pd.DataFrame(brand_ratio_data)
+    chart_df['Label'] = chart_df['品牌'] + '<br>' + chart_df['占比'].round(1).astype(str) + '%'
+    
+    fig_conc = px.bar(chart_df, x='价格区间', y='占比', color='品牌',
+                       text='Label', template='plotly_white',
+                       color_discrete_sequence=COLOR_PALETTE)
+    
+    fig_conc.update_traces(
+        textposition='inside',
+        insidetextanchor='middle',
+        hovertemplate='<b>%{x}</b><br>品牌: %{color}<br>占比: %{y:.1f}%<br>销售额: $%{customdata[0]:,.0f}<extra></extra>',
+        customdata=chart_df[['销售额']],
+        textfont=dict(color='white')
     )
-    st.plotly_chart(fig_price_metrics, use_container_width=True)
-
-with row2_col2:
-    # Calculate latest complete quarter
-    filtered_df['Date'] = pd.to_datetime(filtered_df['月份'])
-    filtered_df['YearQuarter'] = filtered_df['Date'].dt.to_period('Q')
     
-    quarter_month_counts = filtered_df.groupby('YearQuarter')['月份'].nunique()
-    complete_quarters = quarter_month_counts[quarter_month_counts == 3].index
-    
-    if not complete_quarters.empty:
-        latest_q = complete_quarters.max()
-    else:
-        latest_q = filtered_df['YearQuarter'].max()
-        
-    st.subheader(f"🏆 价位段内各品牌占比 ({latest_q})")
-    
-    q_df = filtered_df[filtered_df['YearQuarter'] == latest_q]
-    price_tiers_list = price_metrics['价格区间'].tolist()
-    brand_ratio_data = []
-    
-    for tier in price_tiers_list:
-        tier_df = q_df[q_df['价格区间'] == tier]
-        total_tier_rev = tier_df['销售额'].sum()
-        
-        if total_tier_rev > 0:
-            brand_revs = tier_df.groupby('品牌')['销售额'].sum().sort_values(ascending=False).head(5)
-            for brand, rev in brand_revs.items():
-                ratio = (rev / total_tier_rev) * 100
-                brand_ratio_data.append({
-                    '价格区间': tier,
-                    '品牌': brand,
-                    '占比': ratio,
-                    '销售额': rev
-                })
-                
-    if brand_ratio_data:
-        chart_df = pd.DataFrame(brand_ratio_data)
-        chart_df['Label'] = chart_df['品牌'] + '<br>' + chart_df['占比'].round(1).astype(str) + '%'
-        
-        fig_conc = px.bar(chart_df, x='价格区间', y='占比', color='品牌',
-                           title=f'各价位段 Top 5 品牌占比 - 最新完整季度 ({latest_q})',
-                           text='Label', template='plotly_white',
-                           color_discrete_sequence=COLOR_PALETTE)
-        
-        fig_conc.update_traces(
-            textposition='inside',
-            insidetextanchor='middle',
-            hovertemplate='<b>%{x}</b><br>品牌: %{color}<br>占比: %{y:.1f}%<br>销售额: $%{customdata[0]:,.0f}<extra></extra>',
-            customdata=chart_df[['销售额']],
-            textfont=dict(color='white')
-        )
-        
-        fig_conc.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', 
-            font=dict(color="#334155"),
-            yaxis_title="占该价位段份额 (%)",
-            barmode='stack',
-            showlegend=False
-        )
-        st.plotly_chart(fig_conc, use_container_width=True)
-    else:
-        st.info("该季度暂无数据")
+    fig_conc.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', 
+        font=dict(color="#334155"),
+        yaxis_title="占该价位段份额 (%)",
+        barmode='stack',
+        height=550,
+        showlegend=True,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    st.plotly_chart(fig_conc, use_container_width=True)
+else:
+    st.info("该季度暂无数据")
 
 # --- Row 3: Segment Leaderboard ---
 st.markdown("---")
