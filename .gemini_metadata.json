@@ -1,0 +1,34 @@
+{
+  "title": "Amazon Market Analysis V3 (Hollyland Edition)",
+  "summary": "A BI dashboard and reporting tool for Amazon wireless microphone market. Merges Hollyview/Hollyland brands and categorizes data into price tiers for quarterly analysis.",
+  "status": "stable",
+  "entry_points": {
+    "streamlit_app": "app.py",
+    "automation_skill": "skill.py",
+    "excel_exporter": "export_excel.py",
+    "data_processor": "final_processor.py"
+  },
+  "architecture": {
+    "data_source": "Sellersprite MCP",
+    "storage": "Local JSON (raw) -> Pickle (processed)",
+    "ui": "Streamlit (Light Theme)",
+    "automation": "Antigravity Skill-based sequence"
+  },
+  "business_logic": {
+    "brand_merging": "Hollyview, HollyView, HOLLYVIEW -> Hollyland",
+    "filtering": "Monthly units > 200",
+    "price_tiers": ["0-30", "30-50", "50-100", "100-150", "150+"],
+    "quarterly_logic": "Aggregates data by full quarters (3 months) for market share analysis."
+  },
+  "deployment": {
+    "github": "https://github.com/Hey0507/amazon-market-analysis",
+    "streamlit_cloud": "https://amazon-market-analysis-fc94piqqtetjsoeyltt7ai.streamlit.app/",
+    "tencent_cloud_ip": "43.156.149.105"
+  },
+  "documentation": [
+    "PROJECT_HANDOVER.md",
+    "usage_guide使用指南",
+    "IMPLEMENTATION_PLAN.md",
+    "walkthrough.md"
+  ]
+}

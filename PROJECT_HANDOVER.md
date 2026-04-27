@@ -20,6 +20,8 @@
 | **BI 看板** | `c:\Users\alecl\Documents\Market_Analysis\app.py` | Streamlit 交互式可视化界面 |
 | **处理后数据** | `c:\Users\alecl\Documents\Market_Analysis\processed_market_data.pkl` | 聚合后的核心数据文件 |
 
+| **内网代码库** | `http://10.80.51.4:3000/Alecli/amazon-market-analysis.git` | 公司内部备份与部署 |
+
 ---
 
 ## 二、 后续如何继续使用

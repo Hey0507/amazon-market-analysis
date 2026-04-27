@@ -1,0 +1,24 @@
+{
+  "name": "amazon_market_analysis_v3",
+  "version": "3.0.0",
+  "description": "Amazon 市场数据全自动化采集、处理与报表生成工具。支持品牌合并、价位段分析及 BI 导出。",
+  "author": "Antigravity",
+  "entry_point": "skill.py",
+  "requirements": "requirements.txt",
+  "mcp_dependencies": [
+    {
+      "name": "sellersprite-mcp",
+      "purpose": "用于抓取 Amazon 市场原始数据",
+      "required_tools": ["competitor_lookup", "product_research"]
+    }
+  ],
+  "capabilities": [
+    "自动补全缺失月份数据",
+    "Hollyview/Hollyland 品牌自动归一化",
+    "多品类市场统一视图聚合",
+    "生成专业格式化 Excel 报表",
+    "启动本地交互式 BI 看板"
+  ],
+  "repository": "http://10.80.51.4:3000/Alecli/amazon-market-analysis.git",
+  "setup_guide": "1. 安装 Python 依赖; 2. 配置 Sellersprite MCP; 3. 运行 skill.py"
+}
